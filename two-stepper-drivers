@@ -1,0 +1,66 @@
+#include "AccelStepper.h"  
+// Define stepper motor connections and motor interface type. Motor interface type must be set to 1 when using a driver:  
+// Right motor is pins 2, 3 and Left motor is pins 4,5 (Looking from behind the subject)
+#define dirPinRight 2  
+#define stepPinRight 3  
+
+#define dirPinLeft 4
+#define stepPinLeft 5
+
+#define motorInterfaceType 1  
+
+const int stepsPerRev = 3200; 
+
+//Button constants: 
+
+const int buttonPin = 7; 
+int buttonState = 0; 
+int buttonPresses = 1; 
+
+// Create a new instances of the AccelStepper class:  
+
+AccelStepper stepperRight = AccelStepper(motorInterfaceType, stepPinRight, dirPinRight);  
+AccelStepper stepperLeft = AccelStepper(motorInterfaceType, stepPinLeft, dirPinLeft);
+
+
+// target amount of steps
+
+long targetSteps = 3 * stepsPerRev; 
+
+   
+void setup() {  
+  // Set the maximum speed in steps per second:  
+  stepperRight.setMaxSpeed(1000); 
+  stepperRight.setAcceleration(500); 
+
+  stepperLeft.setMaxSpeed(1000); 
+  stepperLeft.setAcceleration(500); 
+  
+  // Button setup:  
+  pinMode(buttonPin, INPUT_PULLUP); 
+  Serial.begin(9600); 
+} 
+
+  
+
+void loop() {  
+  buttonState = digitalRead(buttonPin); 
+
+  if (buttonState == LOW) { 
+    Serial.println(buttonPresses); 
+
+    if (stepperRight.distanceToGo() == 0){ 
+      if (buttonPresses % 2 == 0){ 
+        stepperRight.moveTo(stepperRight.currentPosition() + targetSteps); 
+        stepperLeft.moveTo(stepperLeft.currentPosition() - targetSteps);
+        buttonPresses++; 
+      } else { 
+        stepperRight.moveTo(stepperLeft.currentPosition() - targetSteps); 
+        stepperLeft.moveTo(stepperLeft.currentPosition() + targetSteps); 
+        buttonPresses++; 
+      } 
+    } 
+  } 
+  stepperRight.run(); 
+  stepperLeft.run();
+} 
